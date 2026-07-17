@@ -9,6 +9,35 @@ class SomsedEngineApp:
         self.window_root.title("Somsed")
         self.window_root.geometry("1000x700")
         self.raw_drawn_points = []
-        self.confirgue_hardware_accelerator()
+        self.configure_hardware_accelerator()
         self.initialize_ui()
-        
+
+    def configure_hardware_accelerator(self):
+        if torch.cuda.is_available():
+            self.device = torch.device("cuda")
+            print("Using CUDA acceleration.")
+        elif torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+            print("Using MPS acceleration.")
+        else:
+            self.device = torch.device("cpu")
+            is_macos_architecture = platform.system() == "Darwin"
+            if not is_macos_architecture:
+                print("\n" + "=" * 80)
+                print("GPU acceleration is unavailable. The application will continue to run on the CPU. Performance may be significantly slower.")
+                print("Installing the appropriate GPU drivers is recommended.")
+                print("https://developer.nvidia.com/cuda/toolkit")
+                print("=" * 80 + "\n")
+            else:
+                print("MPS acceleration is unavailable. The application will continue running on the CPU. Performance may be significantly slower.")
+    def initialize_ui(self):
+        self.sidebar_control_panel = tk.Frame(self.window_root, width=200, bg="lightgray", relief=tk.RAISED, bd=2)  
+        self.sidebar_control_panel.pack(side=tk.LEFT, fill=tk.Y)
+
+        self.hardware_label = tk.Label(
+            self.sidebar_control_panel,
+            text=f"Hardware Accelerator: {self.device.type.upper()}",
+                bg="lightgray",
+                font=("Arial", 12, "bold")
+        )
+        self.hardware_label.pack(pady=20, padx=10)
