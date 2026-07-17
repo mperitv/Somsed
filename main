@@ -1,0 +1,14 @@
+import tkinter as tk
+from tkinter import messagebox
+import torch
+import platform
+
+class SomsedEngineApp:
+    def __init__(self, window_root):
+        self.window_root = window_root
+        self.window_root.title("Somsed")
+        self.window_root.geometry("1000x700")
+        self.raw_drawn_points = []
+        self.confirgue_hardware_accelerator()
+        self.initialize_ui()
+        

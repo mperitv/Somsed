@@ -1,0 +1,1 @@
+a graphing calculator... actually a calculator graphing. Instead of entering a function and getting a graph like in a normal graphing calculator, you draw the graph and get the function!!!
