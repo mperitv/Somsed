@@ -1,4 +1,5 @@
 import tkinter as tk
+import customtkinter as ctk
 from tkinter import messagebox
 import torch
 import platform
@@ -10,6 +11,7 @@ class SomsedApp:
         self.root.title("Somsed")
         self.root.geometry("1000x700")
         self.points = []
+        self.last_epoch = None
         self.init_hardware()
         self.benchmark_device()
         self.init_ui()
@@ -52,77 +54,58 @@ class SomsedApp:
         self.time_coefficient = (t1 - t0) / 100
     def init_ui(self):
 
-        self.sidebar = tk.Frame(
+        self.sidebar = ctk.CTkFrame(
             self.root,
             width=200,
-            bg="lightgray",
-            relief=tk.RAISED,
-            bd=2
         )  
         self.sidebar.pack(side=tk.LEFT, fill=tk.Y)
 
-        self.main_content_frame = tk.Frame(
+        self.main_content_frame = ctk.CTkFrame(
             self.root,
-            bg="white"
         )
         self.main_content_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-        self.hardware_label = tk.Label(
+        self.hardware_label = ctk.CTkLabel(
             self.sidebar,
             text=f"Hardware Accelerator: {self.device.type.upper()}",
-                bg="lightgray",
                 font=("Arial", 12, "bold")
         )
         self.hardware_label.pack(pady=15, padx=10)
 
-        self.precision_title_label = tk.Label(
+        self.precision_title_label = ctk.CTkLabel(
             self.sidebar,
             text="Epoch",
-            bg="#1e1e24",
-            fg="white",
             font=("Arial", 10, "bold")
         )
         self.precision_title_label.pack(pady=(20, 0), padx=10)
 
-        self.precision_slider = tk.Scale(
+        self.precision_slider = ctk.CTkSlider(
             self.sidebar,
             from_=200,
             to=3000,
-            orient=tk.HORIZONTAL,
-            resolution=100,
             command=self.update_time,
-            bg="#1e1e24",
-            fg="white",
-            highlightthickness=0,
-            troughcolor="#3e3e42",
         )
         self.precision_slider.pack(pady=5, padx=10, fill=tk.X)
 
-        self.estimated_time_label = tk.Label(
+        self.estimated_time_label = ctk.CTkLabel(
             self.sidebar,
             text="Estimated Time: N/A",
             font=("Arial", 10, "italic"),
-            bg="#1e1e24",
-            fg="#a4b0be"
         )
         self.estimated_time_label.pack(pady=5, padx=10, anchor=tk.W)
 
-        self.optimize_button = tk.Button(
+        self.optimize_button = ctk.CTkButton(
             self.sidebar,
             text="Optimize",
             command=self.optimize_curve,
-            bg="#4CAF50",
-            fg="white",
             font=("Arial", 12, "bold"),
         )
         self.optimize_button.pack(pady=30, padx=10, fill=tk.X)
 
-        self.clear_button = tk.Button(
+        self.clear_button = ctk.CTkButton(
             self.sidebar,
             text="Clear",
             command=self.clear_canvas,
-            bg="#f44336",
-            fg="white",
             font=("Arial", 12, "bold"),
         )
         self.clear_button.pack(pady=10, padx=10, fill=tk.X)
@@ -136,34 +119,32 @@ class SomsedApp:
         )
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        self.log_console = tk.Text(
+        self.log_console = ctk.CTkTextbox(
             self.main_content_frame,
-            height=10,
-            bg="#1e1e24",
-            fg="white",
-            font=("Courier New", 10),
-            bd=0,
-            padx=10,
-            pady=10,
+            height=140,
+            font=("Consolas", 11)
         )
         self.log_console.pack(side=tk.BOTTOM, fill=tk.X)
-        self.log_console.config(state=tk.DISABLED)
+        self.log_console.configure(state="disabled")
 
         self.canvas.bind("<Button-1>", self.start_draw)
         self.canvas.bind("<B1-Motion>", self.draw)
         self.update_time(self.precision_slider.get())
 
     def log(self, message):
-        self.log_console.config(state=tk.NORMAL)
+        self.log_console.configure(state="normal")
         self.log_console.insert(tk.END, message + "\n")
         self.log_console.see(tk.END)
-        self.log_console.config(state=tk.DISABLED)
+        self.log_console.configure(state="disabled")
 
     def update_time(self, value):
-        epochs = int(value)
+        epochs = round(value / 100) * 100
+        self.precision_slider.set(epochs)
         calculated_time = epochs * self.time_coefficient
-        self.estimated_time_label.config(text=f"Estimated Time: {calculated_time:.2f} seconds")
-        self.log(f"Epochs set to: {epochs}. Estimated time: {calculated_time:.2f} seconds.")
+        self.estimated_time_label.configure(text=f"Estimated Time: {calculated_time:.2f} seconds")
+        if epochs != self.last_epoch:
+            self.last_epoch = epochs
+            self.log(f"Epochs set to: {epochs}. Estimated time: {calculated_time:.2f} seconds.")
     
     def start_draw(self, event):
         self.points.append((event.x, event.y))
@@ -181,12 +162,14 @@ class SomsedApp:
     def clear_canvas(self):
         self.canvas.delete("all")
         self.points.clear()
-        self.log_console.config(state=tk.NORMAL)
+        self.log_console.configure(state="normal")
         self.log_console.delete(1.0, tk.END)
-        self.log_console.config(state=tk.DISABLED)
+        self.log_console.configure(state="disabled")
         print("Canvas cleared")
         self.log("Canvas cleared.")
 if __name__ == "__main__":
-    root = tk.Tk()
+    ctk.set_appearance_mode("System")
+    ctk.set_default_color_theme("blue")
+    root = ctk.CTk()
     app = SomsedApp(root)
     root.mainloop()
