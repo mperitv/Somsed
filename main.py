@@ -14,6 +14,11 @@ class SomsedApp:
         self.last_epoch = None
         self.init_hardware()
         self.benchmark_device()
+        self.root.grid_rowconfigure(0, weight=4)
+        self.root.grid_rowconfigure(1, weight=1)
+
+        self.root.grid_columnconfigure(0, weight=1)
+        self.root.grid_columnconfigure(1, weight=3)
         self.init_ui()
 
     def init_hardware(self):
@@ -58,12 +63,13 @@ class SomsedApp:
             self.root,
             width=200,
         )  
-        self.sidebar.pack(side=tk.LEFT, fill=tk.Y)
-
-        self.main_content_frame = ctk.CTkFrame(
-            self.root,
+        self.sidebar.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=5,
+            pady=5
         )
-        self.main_content_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         self.hardware_label = ctk.CTkLabel(
             self.sidebar,
@@ -111,20 +117,31 @@ class SomsedApp:
         self.clear_button.pack(pady=10, padx=10, fill=tk.X)
 
         self.canvas = tk.Canvas(
-            self.main_content_frame,
-            width=800,
-            height=500,
+            self.root,
             bg="white",
             highlightthickness=0,
         )
-        self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.canvas.grid(
+            row=0,
+            column=0,
+            columnspan=2,
+            sticky="nsew",
+            padx=5,
+            pady=5
+        )
 
         self.log_console = ctk.CTkTextbox(
-            self.main_content_frame,
+            self.root,
             height=140,
             font=("Consolas", 11)
         )
-        self.log_console.pack(side=tk.BOTTOM, fill=tk.X)
+        self.log_console.grid(
+            row=1,
+            column=1,
+            sticky="nsew",
+            padx=5,
+            pady=5
+        )
         self.log_console.configure(state="disabled")
 
         self.canvas.bind("<Button-1>", self.start_draw)
