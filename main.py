@@ -14,8 +14,8 @@ class SomsedApp:
         self.last_epoch = None
         self.init_hardware()
         self.benchmark_device()
-        self.root.grid_rowconfigure(0, weight=4)
-        self.root.grid_rowconfigure(1, weight=1)
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_rowconfigure(1, weight=0)
 
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_columnconfigure(1, weight=3)
@@ -59,31 +59,61 @@ class SomsedApp:
         self.time_coefficient = (t1 - t0) / 100
     def init_ui(self):
 
-        self.sidebar = ctk.CTkFrame(
+        self.bottom_frame = ctk.CTkFrame(
             self.root,
+            height=120
+        )
+
+        self.bottom_frame.grid(
+            row=1,
+            column=0,
+            columnspan=2,
+            sticky="ew"
+        )
+        self.bottom_frame.grid_propagate(False)
+        self.bottom_frame.grid_columnconfigure(0, weight=1)
+        self.bottom_frame.grid_columnconfigure(1, weight=3)
+        self.bottom_frame.grid_rowconfigure(0, weight=1)
+
+        self.sidebar = ctk.CTkFrame(
+            self.bottom_frame,
             width=200,
         )  
         self.sidebar.grid(
-            row=1,
+            row=0,
             column=0,
             sticky="nsew",
             padx=5,
             pady=5
         )
+        self.sidebar.grid_columnconfigure(0, weight=1)
+        self.sidebar.grid_columnconfigure(1, weight=2)
 
         self.hardware_label = ctk.CTkLabel(
             self.sidebar,
             text=f"Hardware Accelerator: {self.device.type.upper()}",
                 font=("Arial", 12, "bold")
         )
-        self.hardware_label.pack(pady=15, padx=10)
+        self.hardware_label.grid(
+            row=0,
+            column=0,
+            columnspan=2,
+            sticky="w",
+            padx=10,
+            pady=(8,4)
+        )
 
         self.precision_title_label = ctk.CTkLabel(
             self.sidebar,
             text="Epoch",
             font=("Arial", 10, "bold")
         )
-        self.precision_title_label.pack(pady=(20, 0), padx=10)
+        self.precision_title_label.grid(
+            row=2,
+            column=0,
+            sticky="w",
+            padx=10
+        )
 
         self.precision_slider = ctk.CTkSlider(
             self.sidebar,
@@ -91,14 +121,25 @@ class SomsedApp:
             to=3000,
             command=self.update_time,
         )
-        self.precision_slider.pack(pady=5, padx=10, fill=tk.X)
+        self.precision_slider.grid(
+            row=2,
+            column=1,
+            sticky="ew",
+            padx=10
+        )
 
         self.estimated_time_label = ctk.CTkLabel(
             self.sidebar,
             text="Estimated Time: N/A",
             font=("Arial", 10, "italic"),
         )
-        self.estimated_time_label.pack(pady=5, padx=10, anchor=tk.W)
+        self.estimated_time_label.grid(
+            row=3,
+            column=1,
+            sticky="w",
+            padx=10,
+            pady=(0,8)
+        )
 
         self.optimize_button = ctk.CTkButton(
             self.sidebar,
@@ -106,7 +147,13 @@ class SomsedApp:
             command=self.optimize_curve,
             font=("Arial", 12, "bold"),
         )
-        self.optimize_button.pack(pady=30, padx=10, fill=tk.X)
+        self.optimize_button.grid(
+            row=1,
+            column=0,
+            padx=(10,5),
+            pady=8,
+            sticky="ew"
+        )
 
         self.clear_button = ctk.CTkButton(
             self.sidebar,
@@ -114,7 +161,13 @@ class SomsedApp:
             command=self.clear_canvas,
             font=("Arial", 12, "bold"),
         )
-        self.clear_button.pack(pady=10, padx=10, fill=tk.X)
+        self.clear_button.grid(
+            row=1,
+            column=1,
+            padx=(5,10),
+            pady=8,
+            sticky="ew"
+        )
 
         self.canvas = tk.Canvas(
             self.root,
@@ -131,16 +184,16 @@ class SomsedApp:
         )
 
         self.log_console = ctk.CTkTextbox(
-            self.root,
+            self.bottom_frame,
             height=140,
             font=("Consolas", 11)
         )
         self.log_console.grid(
-            row=1,
+            row=0,
             column=1,
             sticky="nsew",
             padx=5,
-            pady=5
+            pady=5,
         )
         self.log_console.configure(state="disabled")
 
