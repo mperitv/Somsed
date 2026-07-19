@@ -182,6 +182,8 @@ class SomsedApp:
             pady=5
         )
 
+        self.root.after(100, self.draw_grid)
+
         self.log_console = ctk.CTkTextbox(
             self.bottom_frame,
             height=140,
@@ -199,6 +201,20 @@ class SomsedApp:
         self.canvas.bind("<Button-1>", self.start_draw)
         self.canvas.bind("<B1-Motion>", self.draw)
         self.update_time(self.precision_slider.get())
+
+    def draw_grid(self):
+        self.root.update_idletasks()
+        
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+
+        spacing = 25
+
+        for x in range(0, width, spacing):
+            self.canvas.create_line(x, 0, x, height, fill="#d9d9d9")
+
+        for y in range(0, height, spacing):
+            self.canvas.create_line(0, y, width, y, fill="#d9d9d9")
 
     def log(self, message):
         self.log_console.configure(state="normal")
