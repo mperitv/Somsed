@@ -248,6 +248,7 @@ class SomsedApp:
     
     def clear_canvas(self):
         self.canvas.delete("all")
+        self.draw_grid()
         self.points.clear()
         self.log_console.configure(state="normal")
         self.log_console.delete(1.0, tk.END)
