@@ -216,15 +216,61 @@ class SomsedApp:
 
         for x in range(int(center_x), width, int(pixel_spacing)):
             self.canvas.create_line(x, 0, x, height, fill="#d9d9d9")
+        
+        for i in range(-self.axis_range, self.axis_range + 1):
+            x = center_x + i * pixel_spacing
+
+            self.canvas.create_text(
+                x,
+                center_y + 15,
+                text=str(i),
+                font=("Arial, 16"),
+                fill="black"
+            )
 
         for x in range(int(center_x), 0 , -int(pixel_spacing)):
             self.canvas.create_line(x, 0, x, height, fill="#d9d9d9")
 
+        for i in range(-self.axis_range, self.axis_range + 1):
+            x = center_x + i * pixel_spacing
+
+            self.canvas.create_text(
+                x,
+                center_y + 15,
+                text=str(i),
+                font=("Arial, 16"),
+                fill="black"
+            )
+
         for y in range(int(center_y), height, int(pixel_spacing)):
             self.canvas.create_line(0, y, width, y, fill="#d9d9d9")
 
+        for i in range(-self.axis_range, self.axis_range + 1):
+            y = center_y - i * pixel_spacing
+
+            if i != 0:
+                self.canvas.create_text(
+                    center_x - 15,
+                    y,
+                    text=str(i),
+                    font=("Arial", 16),
+                    fill="black"
+                )
+
         for y in range(int(center_y), 0, -int(pixel_spacing)):
             self.canvas.create_line(0, y, width, y, fill="#d9d9d9")
+        
+        for i in range(-self.axis_range, self.axis_range + 1):
+            y = center_y - i * pixel_spacing
+
+            if i != 0:
+                self.canvas.create_text(
+                    center_x - 15,
+                    y,
+                    text=str(i),
+                    font=("Arial", 16),
+                    fill="black"
+                )
         
         self.canvas.create_line(
             width / 2, 0,
