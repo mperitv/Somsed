@@ -244,11 +244,11 @@ class SomsedApp:
         width = self.canvas.winfo_width()
         height = self.canvas.winfo_height()
 
-        scale_x = (2 * self.axis_range) / width
-        scale_y = (2 * self.axis_range) / height
+        x_scale = (2 * self.axis_range) / width
+        y_scale = (2 * self.axis_range) / width
 
-        math_x = (x - width / 2) * scale_x
-        math_y = (height / 2 - y) * scale_y
+        math_x = (x - width / 2) * x_scale
+        math_y = (height / 2 - y) * y_scale
 
         return math_x, math_y
 
