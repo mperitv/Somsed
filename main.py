@@ -209,21 +209,21 @@ class SomsedApp:
         width = self.canvas.winfo_width()
         height = self.canvas.winfo_height()
 
-        spacing = 25
+        pixel_spacing = width / (2 * self.axis_range)
 
         center_x = width // 2
         center_y = height // 2
 
-        for x in range(center_x, width, spacing):
+        for x in range(int(center_x), width, int(pixel_spacing)):
             self.canvas.create_line(x, 0, x, height, fill="#d9d9d9")
 
-        for x in range(center_x, 0 , -spacing):
+        for x in range(int(center_x), 0 , -int(pixel_spacing)):
             self.canvas.create_line(x, 0, x, height, fill="#d9d9d9")
 
-        for y in range(center_y, height, spacing):
+        for y in range(int(center_y), height, int(pixel_spacing)):
             self.canvas.create_line(0, y, width, y, fill="#d9d9d9")
 
-        for y in range(center_y, 0, -spacing):
+        for y in range(int(center_y), 0, -int(pixel_spacing)):
             self.canvas.create_line(0, y, width, y, fill="#d9d9d9")
         
         self.canvas.create_line(
