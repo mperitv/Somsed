@@ -11,6 +11,7 @@ class SomsedApp:
         self.root.title("Somsed")
         self.root.geometry("1000x700")
         self.points = []
+        self.axis_range = 10
         self.init_hardware()
         self.benchmark_device()
         self.root.grid_rowconfigure(0, weight=1)
@@ -239,6 +240,18 @@ class SomsedApp:
             width=2
         )
 
+    def canvas_to_math(self, x, y):
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+
+        scale_x = (2 * self.axis_range) / width
+        scale_y = (2 * self.axis_range) / height
+
+        math_x = (x - width / 2) * scale_x
+        math_y = (height / 2 - y) * scale_y
+
+        return math_x, math_y
+
     def log(self, message):
         self.log_console.configure(state="normal")
         self.log_console.insert(tk.END, message + "\n")
@@ -257,8 +270,10 @@ class SomsedApp:
         )
 
     def start_draw(self, event):
+        mx, my = self.canvas_to_math(event.x, event.y)
+
         self.points.append((event.x, event.y))
-        self.log(f"Point drawn at: ({event.x}, {event.y})")
+        self.log(f"Point drawn at: ({mx:.1f}, {my:.1f})")
     
     def draw(self, event):
         x, y = event.x, event.y
