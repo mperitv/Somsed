@@ -210,11 +210,34 @@ class SomsedApp:
 
         spacing = 25
 
-        for x in range(0, width, spacing):
+        center_x = width // 2
+        center_y = height // 2
+
+        for x in range(center_x, width, spacing):
             self.canvas.create_line(x, 0, x, height, fill="#d9d9d9")
 
-        for y in range(0, height, spacing):
+        for x in range(center_x, 0 , -spacing):
+            self.canvas.create_line(x, 0, x, height, fill="#d9d9d9")
+
+        for y in range(center_y, height, spacing):
             self.canvas.create_line(0, y, width, y, fill="#d9d9d9")
+
+        for y in range(center_y, 0, -spacing):
+            self.canvas.create_line(0, y, width, y, fill="#d9d9d9")
+        
+        self.canvas.create_line(
+            width / 2, 0,
+            width / 2, height,
+            fill="black",
+            width=2
+        )
+
+        self.canvas.create_line(
+            0, height / 2,
+            width, height / 2,
+            fill="black",
+            width=2
+        )
 
     def log(self, message):
         self.log_console.configure(state="normal")
