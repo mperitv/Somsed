@@ -11,7 +11,6 @@ class SomsedApp:
         self.root.title("Somsed")
         self.root.geometry("1000x700")
         self.points = []
-        self.last_epoch = None
         self.init_hardware()
         self.benchmark_device()
         self.root.grid_rowconfigure(0, weight=1)
@@ -61,7 +60,7 @@ class SomsedApp:
 
         self.bottom_frame = ctk.CTkFrame(
             self.root,
-            height=120
+            height=150
         )
 
         self.bottom_frame.grid(
@@ -103,18 +102,6 @@ class SomsedApp:
             pady=(8,4)
         )
 
-        self.precision_title_label = ctk.CTkLabel(
-            self.sidebar,
-            text="Epoch",
-            font=("Arial", 10, "bold")
-        )
-        self.precision_title_label.grid(
-            row=2,
-            column=0,
-            sticky="w",
-            padx=10
-        )
-
         self.precision_slider = ctk.CTkSlider(
             self.sidebar,
             from_=200,
@@ -125,6 +112,18 @@ class SomsedApp:
             row=2,
             column=1,
             sticky="ew",
+            padx=10
+        )
+
+        self.precision_title_label = ctk.CTkLabel(
+            self.sidebar,
+            text="Epoch: 200",
+            font=("Arial", 10, "bold")
+        )
+        self.precision_title_label.grid(
+            row=2,
+            column=0,
+            sticky="w",
             padx=10
         )
 
@@ -210,12 +209,14 @@ class SomsedApp:
     def update_time(self, value):
         epochs = round(value / 100) * 100
         self.precision_slider.set(epochs)
+        self.precision_title_label.configure(
+            text=f"Epoch: {epochs}"
+        )
         calculated_time = epochs * self.time_coefficient
-        self.estimated_time_label.configure(text=f"Estimated Time: {calculated_time:.2f} seconds")
-        if epochs != self.last_epoch:
-            self.last_epoch = epochs
-            self.log(f"Epochs set to: {epochs}. Estimated time: {calculated_time:.2f} seconds.")
-    
+        self.estimated_time_label.configure(
+            text=f"Estimated Time: {calculated_time:.2f} s"
+        )
+
     def start_draw(self, event):
         self.points.append((event.x, event.y))
         self.log(f"Point drawn at: ({event.x}, {event.y})")
