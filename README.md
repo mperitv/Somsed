@@ -44,5 +44,13 @@ To open the app:
 2. Click Open
 3. Confirm opening the application
 
+## Build Information
+
+Platform:  
+macOS Apple Silicon (arm64)
+
+Built with:  
+PyInstaller 6.21.0
+
 This Project is for #horizons
 
