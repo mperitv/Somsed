@@ -6,6 +6,7 @@ import platform
 import time
 import math
 
+
 class SomsedApp:
 
     def __init__(self, root):
@@ -22,6 +23,7 @@ class SomsedApp:
         self.axis_range = 10
         self.min_distance = 3
         self.stabilization = 0.1
+        self.function_counter = 1
         self.last_filtered_point = None
         self.init_hardware()
         self.benchmark_device()
@@ -292,16 +294,12 @@ class SomsedApp:
             )
 
     def add_function(self):
-        name = f"F{len(self.functions) + 1}"
-
+        self.function_counter += 1
+        name = f"F{self.function}"
         self.functions[name] = {
             "pixel_points": [],
-            "math_points": []
-            }
-        
-        self.current_function = name
-        self.refresh_function_list()
-        self.redraw_canvas()
+            
+        }
 
     def delete_function(self):
         if len(self.functions) == 1:
@@ -600,13 +598,21 @@ class SomsedApp:
 
     def optimize_curve(self):
 
+        if len(self.current_math()) < 2:
+            self.log("Not enough points to optimize")
+            return
+
         if self.is_function():
             self.log("Function")
         else:
             self.log("Non-function")
 
-        smoothed = self.smooth_points()
-        simplified = self.douglas_peucker(smoothed, epsilon=0.1)
+        smoothed = self.current_math()
+
+        simplified = self.douglas_peucker(
+            smoothed,
+            epsilon=0.2
+        )
 
         angles = self.calculate_angles(simplified)
 
@@ -622,8 +628,10 @@ class SomsedApp:
             x2, y2 = self.math_to_canvas(*smoothed[i])
 
             self.canvas.create_line(
-                x1, y1,
-                x2, y2,
+                x1,
+                y1,
+                x2,
+                y2,
                 fill="red",
                 width=3,
                 smooth=True
