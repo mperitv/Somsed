@@ -35,5 +35,14 @@ For macOS:
 2. Extract the file
 3. Open Somsed.app
 
+## macOS First Launch
+
+Because the app is not signed with an Apple Developer certificate, macOS may show a security warning.
+
+To open the app:
+1. Right click Somsed.app
+2. Click Open
+3. Confirm opening the application
+
 This Project is for #horizons
 
