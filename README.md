@@ -21,8 +21,8 @@ Before starting the code, I used artificial intelligence to research application
 
 ## Tech Stack
 
+IDE: VS Code  
 Language: Python  
-IDE: VS Code
 
 ## Platform Support
 macOS Apple Slicon (arm64)
