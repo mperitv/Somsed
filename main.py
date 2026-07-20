@@ -241,6 +241,18 @@ class SomsedApp:
         )
         title.pack(pady=(10,15))
 
+        add_button = ctk.CTkButton(
+            self.function_frame,
+            text="+ Add Function",
+            command=self.add_function
+        )
+
+        add_button.pack(
+            fill="x",
+            padx=8,
+            pady=(0, 10)
+        )
+
         for name in self.functions:
             button = ctk.CTkButton(
                 self.function_frame,
@@ -248,6 +260,11 @@ class SomsedApp:
                 command=lambda n=name: self.switch_function(n)
             )
 
+            button.pack(
+                fill="x",
+                padx=8,
+                pady=(10, 3)
+            )
             button.pack(fill="x", padx=8, pady=3)
 
     def add_function(self):
