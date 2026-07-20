@@ -14,6 +14,8 @@ class SomsedApp:
         self.math_points = []
         self.axis_range = 10
         self.min_distance = 3
+        self.stabilization = 0.1
+        self.last_filtered_point = None
         self.init_hardware()
         self.benchmark_device()
         self.root.grid_rowconfigure(0, weight=1)
@@ -299,6 +301,24 @@ class SomsedApp:
         math_y = (height / 2 - y) * y_scale
 
         return math_x, math_y
+    
+    def filter_point(self, x, y):
+        if self.last_filtered_point is None:
+            self.last_filtered_point = (x, y)
+            return x, y
+        
+        last_x, last_y = self.last_filtered_point
+
+        filtered_x = (
+            self.stabilization * x + (1 - self.stabilization) * last_x
+        )
+
+        filtered_y = (
+            self.stabilization * y + (1 - self.stabilization) * last_y
+        )
+
+        self.last_filtered_point = (filtered_x, filtered_y)
+        return filtered_x, filtered_y
 
     def log(self, message):
         self.log_console.configure(state="normal")
@@ -318,32 +338,118 @@ class SomsedApp:
         )
 
     def start_draw(self, event):
-        mx, my = self.canvas_to_math(event.x, event.y)
-
-        self.pixel_points.append((event.x, event.y))
+        self.last_filtered_point = None
+        fx, fy = self.filter_point(event.x, event.y)
+        mx, my = self.canvas_to_math(fx, fy)
+        self.pixel_points.append((fx, fy))
         self.math_points.append((mx, my))
         self.log(f"Point drawn at: ({mx:.1f}, {my:.1f})")
     
     def draw(self, event):
-        x, y = event.x, event.y
-        mx, my = self.canvas_to_math(x, y)
+        fx, fy = self.filter_point(event.x, event.y)
+        mx, my = self.canvas_to_math(fx, fy)
         prev_x, prev_y = self.pixel_points[-1]
-        distance = ((x - prev_x) ** 2 + (y - prev_y) ** 2) ** 0.5
+        distance = ((fx - prev_x) ** 2 + (fy - prev_y) ** 2) ** 0.5
         if distance < self.min_distance:
             return
-        self.pixel_points.append((x, y))
+        self.pixel_points.append((fx, fy))
         self.math_points.append((mx, my))
         self.canvas.create_line(
             prev_x, prev_y,
-            x, y,
+            fx, fy,
             fill="black",
             width=3,
             capstyle=tk.ROUND,
             smooth=True
         )
+
+    def smooth_points(self, window=21):
+        if len(self.math_points) < window:
+            return self.math_points
+        
+        smoothed = []
+
+        for i in range(len(self.math_points)):
+            start = max(0, i - window // 2)
+            end = min(len(self.math_points), i + window // 2 + 1)
+
+            avg_x = sum(p[0] for p in self.math_points[start:end]) / (end - start)
+            avg_y = sum(p[1] for p in self.math_points[start:end]) / (end - start)
+
+            smoothed.append((avg_x, avg_y))
+        
+        return smoothed
     
+    def perpendicular_distance(self, point, start, end):
+        x0, y0 = point
+        x1, y1 = start
+        x2, y2 = end
+
+        if start == end:
+            return ((x0 - x1) ** 2 + (y0 - y1) ** 2) ** 0.5
+        
+        numerator = abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1)
+        denominator = ((y2 - y1) ** 2 + (x2 - x1) ** 2) ** 0.5
+
+        return numerator / denominator
+    
+    def douglas_peucker(self, points, epsilon):
+        if len(points) < 3:
+            return points
+        
+        max_distance = 0
+        index = 0
+
+        for i in range(1, len(points) - 1):
+            distance = self.perpendicular_distance(
+                points[i],
+                points[0],
+                points[-1]
+            )
+
+            if distance > max_distance:
+                max_distance = distance
+                index = i
+
+        if max_distance > epsilon:
+            left = self.douglas_peucker(points[:index + 1], epsilon)
+            right = self.douglas_peucker(points[index:], epsilon)
+
+            return left[:-1] + right
+        
+        return [points[0], points[-1]]
+
+    def math_to_canvas(self, x, y):
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+
+        x_scale = width / (2 * self.axis_range)
+        y_scale = width / (2 * self.axis_range)
+
+        canvas_x = width / 2 + x * x_scale
+        canvas_y = height / 2 - y * y_scale
+
+        return canvas_x, canvas_y
+
     def optimize_curve(self):
-        self.log("Starting curve optimization...")
+        smoothed = self.smooth_points()
+        simplified = self.douglas_peucker(smoothed, epsilon=0.1)
+
+        self.log(f"Original: {len(self.math_points)} points")
+        self.log(f"Smoothed: {len(smoothed)} points")
+        self.log(f"Simplified: {len(simplified)} points")
+
+        for i in range(1, len(smoothed)):
+            x1, y1 = self.math_to_canvas(*smoothed[i - 1])
+            x2, y2 = self.math_to_canvas(*smoothed[i])
+
+            self.canvas.create_line(
+                x1, y1,
+                x2, y2,
+                fill="red",
+                width=3,
+                smooth=True
+            )
     
     def clear_canvas(self):
         self.canvas.delete("all")
@@ -355,6 +461,7 @@ class SomsedApp:
         self.log_console.configure(state="disabled")
         print("Canvas cleared")
         self.log("Canvas cleared.")
+        self.last_filtered_point = None
 if __name__ == "__main__":
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
