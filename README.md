@@ -21,7 +21,7 @@ Before starting the code, I used artificial intelligence to research application
 
 ## Tech Stack
 
-Language: Python
+Language: Python  
 IDE: VS Code
 
 ## Platform Support
