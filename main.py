@@ -4,14 +4,21 @@ from tkinter import messagebox
 import torch
 import platform
 import time
+import math
 
 class SomsedApp:
+
     def __init__(self, root):
         self.root = root
         self.root.title("Somsed")
         self.root.geometry("1000x700")
-        self.pixel_points = []
-        self.math_points = []
+        self.functions = {
+            "F1": {
+                "pixel_points": [],
+                "math_points": []
+            }
+        }
+        self.current_function = "F1"
         self.axis_range = 10
         self.min_distance = 3
         self.stabilization = 0.1
@@ -43,6 +50,7 @@ class SomsedApp:
                 print("=" * 80 + "\n")
             else:
                 print("MPS acceleration is unavailable. The application will continue running on the CPU. Performance may be significantly slower.")
+    
     def benchmark_device(self):
         x = torch.randn(100, 15, device=self.device)
         w = torch.randn(15, 1, device=self.device)
@@ -61,6 +69,7 @@ class SomsedApp:
             torch.mps.synchronize()
         t1 = time.perf_counter()
         self.time_coefficient = (t1 - t0) / 100
+
     def init_ui(self):
 
         self.bottom_frame = ctk.CTkFrame(
@@ -302,6 +311,12 @@ class SomsedApp:
 
         return math_x, math_y
     
+    def current_pixels(self):
+        return self.functions[self.current_function]["pixel_points"]
+    
+    def current_math(self):
+        return self.functions[self.current_function]["math_points"]
+    
     def filter_point(self, x, y):
         if self.last_filtered_point is None:
             self.last_filtered_point = (x, y)
@@ -341,19 +356,19 @@ class SomsedApp:
         self.last_filtered_point = None
         fx, fy = self.filter_point(event.x, event.y)
         mx, my = self.canvas_to_math(fx, fy)
-        self.pixel_points.append((fx, fy))
-        self.math_points.append((mx, my))
+        self.current_pixels().append((fx, fy))
+        self.current_math().append((mx, my))
         self.log(f"Point drawn at: ({mx:.1f}, {my:.1f})")
     
     def draw(self, event):
         fx, fy = self.filter_point(event.x, event.y)
         mx, my = self.canvas_to_math(fx, fy)
-        prev_x, prev_y = self.pixel_points[-1]
+        prev_x, prev_y = self.current_pixels()[-1]
         distance = ((fx - prev_x) ** 2 + (fy - prev_y) ** 2) ** 0.5
         if distance < self.min_distance:
             return
-        self.pixel_points.append((fx, fy))
-        self.math_points.append((mx, my))
+        self.current_pixels().append((fx, fy))
+        self.current_math().append((mx, my))
         self.canvas.create_line(
             prev_x, prev_y,
             fx, fy,
@@ -364,17 +379,17 @@ class SomsedApp:
         )
 
     def smooth_points(self, window=21):
-        if len(self.math_points) < window:
-            return self.math_points
+        if len(self.current_math()) < window:
+            return self.current_math()
         
         smoothed = []
 
-        for i in range(len(self.math_points)):
+        for i in range(len(self.current_math())):
             start = max(0, i - window // 2)
-            end = min(len(self.math_points), i + window // 2 + 1)
+            end = min(len(self.current_math()), i + window // 2 + 1)
 
-            avg_x = sum(p[0] for p in self.math_points[start:end]) / (end - start)
-            avg_y = sum(p[1] for p in self.math_points[start:end]) / (end - start)
+            avg_x = sum(p[0] for p in self.current_math()[start:end]) / (end - start)
+            avg_y = sum(p[1] for p in self.current_math()[start:end]) / (end - start)
 
             smoothed.append((avg_x, avg_y))
         
@@ -418,6 +433,22 @@ class SomsedApp:
             return left[:-1] + right
         
         return [points[0], points[-1]]
+    
+    def calculate_angles(self, points):
+        angles = []
+
+        for i in range(1, len(points)):
+            x1, y1 = points[i - 1]
+            x2, y2 = points[i]
+
+            angle = math.atan2(
+                y2 - y1,
+                x2 - x1
+            )
+
+            angles.append(angle)
+
+        return angles
 
     def math_to_canvas(self, x, y):
         width = self.canvas.winfo_width()
@@ -433,12 +464,12 @@ class SomsedApp:
     
     def is_function(self, tolerance=0.1):
 
-        if len(self.math_points) < 2:
+        if len(self.current_math()) < 2:
             return False
 
         bins = {}
 
-        for x, y in self.math_points:
+        for x, y in self.current_math():
             key = round(x / tolerance)
 
             if key not in bins:
@@ -459,9 +490,14 @@ class SomsedApp:
         smoothed = self.smooth_points()
         simplified = self.douglas_peucker(smoothed, epsilon=0.1)
 
-        self.log(f"Original: {len(self.math_points)} points")
-        self.log(f"Smoothed: {len(smoothed)} points")
+        angles = self.calculate_angles(simplified)
+
+        self.log(f"Original: {len(self.current_math())} points")
         self.log(f"Simplified: {len(simplified)} points")
+        self.log(f"Angles: {len(angles)}")
+
+        for angle in angles[:10]:
+            self.log(f"{math.degrees(angle):.1f}°")
 
         for i in range(1, len(smoothed)):
             x1, y1 = self.math_to_canvas(*smoothed[i - 1])
@@ -478,8 +514,9 @@ class SomsedApp:
     def clear_canvas(self):
         self.canvas.delete("all")
         self.draw_grid()
-        self.pixel_points.clear()
-        self.math_points.clear()
+        for func in self.functions.values():
+            func["pixel_points"].clear()
+            func["pixel_points"].clear()
         self.log_console.configure(state="normal")
         self.log_console.delete(1.0, tk.END)
         self.log_console.configure(state="disabled")
