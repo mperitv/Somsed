@@ -25,7 +25,7 @@ IDE: VS Code
 Language: Python  
 
 ## Platform Support
-macOS Apple Slicon (arm64)
+macOS Apple Silicon (arm64)
 Tested on a MacBook with Apple Slicon
 
 ## Installation
