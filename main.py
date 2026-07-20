@@ -28,8 +28,8 @@ class SomsedApp:
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_rowconfigure(1, weight=0)
 
-        self.root.grid_columnconfigure(0, weight=1)
-        self.root.grid_columnconfigure(1, weight=3)
+        self.root.grid_columnconfigure(0, weight=0)
+        self.root.grid_columnconfigure(1, weight=1)
         self.init_ui()
 
     def init_hardware(self):
@@ -182,6 +182,20 @@ class SomsedApp:
             sticky="ew"
         )
 
+        self.function_frame = ctk.CTkFrame(
+            self.root,
+            width=120
+        )
+
+        self.function_frame.grid(
+            row=0,
+            column=0,
+            sticky="ns",
+            padx=(5,0),
+            pady=5
+        )
+        self.function_frame.grid_propagate(False)
+
         self.canvas = tk.Canvas(
             self.root,
             bg="white",
@@ -189,8 +203,7 @@ class SomsedApp:
         )
         self.canvas.grid(
             row=0,
-            column=0,
-            columnspan=2,
+            column=1,
             sticky="nsew",
             padx=5,
             pady=5
@@ -215,6 +228,62 @@ class SomsedApp:
         self.canvas.bind("<Button-1>", self.start_draw)
         self.canvas.bind("<B1-Motion>", self.draw)
         self.update_time(self.precision_slider.get())
+        self.refresh_function_list()
+
+    def refresh_function_list(self):
+        for widget in self.function_frame.winfo_children():
+            widget.destroy()
+        
+        title = ctk.CTkLabel(
+            self.function_frame,
+            text="Functions",
+            font=("Arial", 16, "bold")
+        )
+        title.pack(pady=(10,15))
+
+        for name in self.functions:
+            button = ctk.CTkButton(
+                self.function_frame,
+                text=name,
+                command=lambda n=name: self.switch_function(n)
+            )
+
+            button.pack(fill="x", padx=8, pady=3)
+
+    def add_function(self):
+        name = f"F{len(self.functions) + 1}"
+
+        self.functions[name] = {
+            "pixel_points": [],
+            "math_points": []
+            }
+        
+        self.current_function = name
+        self.refresh_function_list()
+        self.redraw_canvas()
+
+    def switch_function(self, name):
+        self.current_function = name
+        self.redraw_canvas()
+
+    def redraw_canvas(self):
+        self.canvas.delete("all")
+        self.draw_grid()
+
+        pixels = self.current_pixels()
+
+        for i in range(1, len(pixels)):
+            x1, y1 = pixels[i-1]
+            x2, y2 = pixels[i]
+
+            self.canvas.create_line(
+                x1, y1,
+                x2, y2,
+                width=3,
+                fill="black",
+                capstyle=tk.ROUND,
+                smooth=True
+            )
 
     def draw_grid(self):
         self.root.update_idletasks()
@@ -369,14 +438,7 @@ class SomsedApp:
             return
         self.current_pixels().append((fx, fy))
         self.current_math().append((mx, my))
-        self.canvas.create_line(
-            prev_x, prev_y,
-            fx, fy,
-            fill="black",
-            width=3,
-            capstyle=tk.ROUND,
-            smooth=True
-        )
+        self.redraw_canvas()
 
     def smooth_points(self, window=21):
         if len(self.current_math()) < window:
@@ -516,7 +578,7 @@ class SomsedApp:
         self.draw_grid()
         for func in self.functions.values():
             func["pixel_points"].clear()
-            func["pixel_points"].clear()
+            func["math_points"].clear()
         self.log_console.configure(state="normal")
         self.log_console.delete(1.0, tk.END)
         self.log_console.configure(state="disabled")
