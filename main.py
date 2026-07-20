@@ -430,8 +430,32 @@ class SomsedApp:
         canvas_y = height / 2 - y * y_scale
 
         return canvas_x, canvas_y
+    
+    def is_function(self, tolerance=0.1):
+
+        if len(self.math_points) < 2:
+            return False
+
+        bins = {}
+
+        for x, y in self.math_points:
+            key = round(x / tolerance)
+
+            if key not in bins:
+                bins[key] = y
+            else:
+                if abs(bins[key] - y) > tolerance:
+                    return False
+                
+        return True
 
     def optimize_curve(self):
+
+        if self.is_function():
+            self.log("Function")
+        else:
+            self.log("Non-function")
+
         smoothed = self.smooth_points()
         simplified = self.douglas_peucker(smoothed, epsilon=0.1)
 
