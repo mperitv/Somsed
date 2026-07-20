@@ -6,6 +6,10 @@ A graphing calculator... actually a calculator graphing! Instead of entering a f
 
  You can add/delete functions, draw functions erase canvas and optimize the curve! And your drawing will be transformed into a mathematical expression!!
 
+## How to Use
+
+Simply enter the desired line on the canvas and press the optimize button. It's that easy!
+
  ## Screenshots
 
 <img width="1068" height="796" alt="Screenshot 2026-07-21 at 1 54 25 AM" src="https://github.com/user-attachments/assets/ead16251-b38b-4dd5-a715-97ac67390b87" />
