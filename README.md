@@ -8,7 +8,7 @@ A graphing calculator... actually a calculator graphing! Instead of entering a f
 
 ## How to Use
 
-Simply enter the desired line on the canvas and press the optimize button. It's that easy!
+Draw a curve however you want, choose the number of epochs, click the Optimize button, and watch your curve turn into a mathematical equation. It's that easy!
 
  ## Screenshots
 
@@ -23,6 +23,13 @@ Before starting the code, I used artificial intelligence to research application
 
 Language: Python
 IDE: VS Code
+
+## Installation
+
+For macOS:
+1. Download Somsed-mac.zip
+2. Extract the file
+3. Open Somsed.app
 
 This Project is for #horizons
 
