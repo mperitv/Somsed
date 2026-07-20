@@ -5,6 +5,7 @@ import torch
 import platform
 import time
 import math
+import numpy as np
 
 
 class SomsedApp:
@@ -602,44 +603,83 @@ class SomsedApp:
 
     def optimize_curve(self):
 
-        if len(self.current_math()) < 2:
-            self.log("Not enough points to optimize")
+        if len(self.current_math()) < 3:
+            self.log("Not enough points")
             return
 
-        if self.is_function():
-            self.log("Function")
-        else:
-            self.log("Non-function")
+        points = self.current_math()
 
-        smoothed = self.current_math()
+        x = np.array([p[0] for p in points])
+        y = np.array([p[1] for p in points])
 
-        simplified = self.douglas_peucker(
-            smoothed,
-            epsilon=0.2
-        )
+        try:
+            degree = 3
 
-        angles = self.calculate_angles(simplified)
-
-        self.log(f"Original: {len(self.current_math())} points")
-        self.log(f"Simplified: {len(simplified)} points")
-        self.log(f"Angles: {len(angles)}")
-
-        for angle in angles[:10]:
-            self.log(f"{math.degrees(angle):.1f}°")
-
-        for i in range(1, len(smoothed)):
-            x1, y1 = self.math_to_canvas(*smoothed[i - 1])
-            x2, y2 = self.math_to_canvas(*smoothed[i])
-
-            self.canvas.create_line(
-                x1,
-                y1,
-                x2,
-                y2,
-                fill="red",
-                width=3,
-                smooth=True
+            coefficients = np.polyfit(
+                x,
+                y,
+                degree
             )
+
+            equation = "y = "
+
+            for i, c in enumerate(coefficients):
+
+                power = degree - i
+
+                if abs(c) < 0.001:
+                    continue
+
+                if power == 0:
+                    equation += f"{c:.3f}"
+
+                elif power == 1:
+                    equation += f"{c:.3f}x + "
+
+                else:
+                    equation += f"{c:.3f}x^{power} + "
+
+            equation = equation.replace("+ -", "- ")
+
+            self.log("----------------")
+            self.log("Generated Function:")
+            self.log(equation)
+            self.log("----------------")
+
+            test_x = np.linspace(
+                min(x),
+                max(x),
+                200
+            )
+
+            test_y = np.polyval(
+                coefficients,
+                test_x
+            )
+
+            for i in range(1, len(test_x)):
+
+                x1, y1 = self.math_to_canvas(
+                    test_x[i-1],
+                    test_y[i-1]
+                )
+
+                x2, y2 = self.math_to_canvas(
+                    test_x[i],
+                    test_y[i]
+                )
+
+                self.canvas.create_line(
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    fill="red",
+                    width=3
+                )
+
+        except Exception as e:
+            self.log(f"Optimization error: {e}")
     
     def clear_canvas(self):
         self.current_pixels().clear()
