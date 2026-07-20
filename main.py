@@ -593,14 +593,12 @@ class SomsedApp:
     def clear_canvas(self):
         self.canvas.delete("all")
         self.draw_grid()
-        for func in self.functions.values():
-            func["pixel_points"].clear()
-            func["math_points"].clear()
+        self.current_pixels().clear()
+        self.current_math.clear()
         self.log_console.configure(state="normal")
         self.log_console.delete(1.0, tk.END)
         self.log_console.configure(state="disabled")
-        print("Canvas cleared")
-        self.log("Canvas cleared.")
+        self.log(f"{self.current_function} cleared.")
         self.last_filtered_point = None
 if __name__ == "__main__":
     ctk.set_appearance_mode("System")
