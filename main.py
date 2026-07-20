@@ -295,11 +295,15 @@ class SomsedApp:
 
     def add_function(self):
         self.function_counter += 1
-        name = f"F{self.function}"
+        name = f"F{self.function_counter}"
         self.functions[name] = {
             "pixel_points": [],
-            
+            "math_points": []
         }
+        self.current_function = name
+        self.refresh_function_list()
+        self.redraw_canvas()
+        self.log(f"{name} created.")
 
     def delete_function(self):
         if len(self.functions) == 1:
