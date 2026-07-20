@@ -24,6 +24,10 @@ Before starting the code, I used artificial intelligence to research application
 Language: Python
 IDE: VS Code
 
+## Platform Support
+macOS Apple Slicon (arm64)
+Tested on a MacBook with Apple Slicon
+
 ## Installation
 
 For macOS:
