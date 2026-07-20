@@ -1,5 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
+from tkinter import messagebox
 import torch
 import platform
 import time
@@ -252,6 +253,20 @@ class SomsedApp:
             pady=(0, 10)
         )
 
+        delete_button = ctk.CTkButton(
+            self.function_frame,
+            text="- Delete Function",
+            command=self.delete_function,
+            fg_color="firebrick",
+            hover_color="darkred"
+        )
+
+        delete_button.pack(
+            fill="x",
+            padx=8,
+            pady=(0, 10)
+        )
+
         for name in self.functions:
             button = ctk.CTkButton(
                 self.function_frame,
@@ -276,6 +291,20 @@ class SomsedApp:
         self.current_function = name
         self.refresh_function_list()
         self.redraw_canvas()
+
+    def delete_function(self):
+        if len(self.functions) == 1:
+            messagebox.showwarning(
+                "Warning",
+                "At least one function must exist."
+            )
+            return
+        
+        del self.functions[self.current_function]
+        self.current_function = next(iter(self.functions))
+        self.refresh_function_list()
+        self.redraw_canvas()
+        self.log("Function deleted.")
 
     def switch_function(self, name):
         self.current_function = name
