@@ -244,7 +244,9 @@ class SomsedApp:
         add_button = ctk.CTkButton(
             self.function_frame,
             text="+ Add Function",
-            command=self.add_function
+            command=self.add_function,
+            fg_color="green",
+            hover_color="darkgreen"
         )
 
         add_button.pack(
@@ -268,10 +270,19 @@ class SomsedApp:
         )
 
         for name in self.functions:
-            button = ctk.CTkButton(
-                self.function_frame,
-                text=name,
-                command=lambda n=name: self.switch_function(n)
+            if name == self.current_function:
+                button = ctk.CTkButton(
+                    self.function_frame,
+                    text=name,
+                    command=lambda n=name: self.switch_function(n),
+                    fg_color="#00897B",
+                    hover_color="#00695C"
+                )
+            else:
+                button = ctk.CTkButton(
+                    self.function_frame,
+                    text=name,
+                    command=lambda n=name: self.switch_function(n)
             )
 
             button.pack(
@@ -308,6 +319,7 @@ class SomsedApp:
 
     def switch_function(self, name):
         self.current_function = name
+        self.refresh_function_list()
         self.redraw_canvas()
 
     def redraw_canvas(self):
