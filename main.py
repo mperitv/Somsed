@@ -1,6 +1,5 @@
 import tkinter as tk
 import customtkinter as ctk
-from tkinter import messagebox
 import torch
 import platform
 import time
@@ -52,8 +51,8 @@ class SomsedApp:
                 print("MPS acceleration is unavailable. The application will continue running on the CPU. Performance may be significantly slower.")
     
     def benchmark_device(self):
-        x = torch.randn(100, 15, device=self.device)
-        w = torch.randn(15, 1, device=self.device)
+        x = torch.randn(2000, 2000, device=self.device)
+        w = torch.randn(2000, 2000, device=self.device)
         for _ in range(5):
             torch.mm(x, w)
         if self.device.type == "cuda":
@@ -265,7 +264,6 @@ class SomsedApp:
                 padx=8,
                 pady=(10, 3)
             )
-            button.pack(fill="x", padx=8, pady=3)
 
     def add_function(self):
         name = f"F{len(self.functions) + 1}"
@@ -591,15 +589,12 @@ class SomsedApp:
             )
     
     def clear_canvas(self):
-        self.canvas.delete("all")
-        self.draw_grid()
         self.current_pixels().clear()
-        self.current_math.clear()
-        self.log_console.configure(state="normal")
-        self.log_console.delete(1.0, tk.END)
-        self.log_console.configure(state="disabled")
-        self.log(f"{self.current_function} cleared.")
+        self.current_math().clear()
         self.last_filtered_point = None
+        self.redraw_canvas()
+        self.log(f"{self.current_function} cleared.")
+
 if __name__ == "__main__":
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
