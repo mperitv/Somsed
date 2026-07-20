@@ -13,6 +13,7 @@ class SomsedApp:
         self.pixel_points = []
         self.math_points = []
         self.axis_range = 10
+        self.min_distance = 3
         self.init_hardware()
         self.benchmark_device()
         self.root.grid_rowconfigure(0, weight=1)
@@ -327,6 +328,9 @@ class SomsedApp:
         x, y = event.x, event.y
         mx, my = self.canvas_to_math(x, y)
         prev_x, prev_y = self.pixel_points[-1]
+        distance = ((x - prev_x) ** 2 + (y - prev_y) ** 2) ** 0.5
+        if distance < self.min_distance:
+            return
         self.pixel_points.append((x, y))
         self.math_points.append((mx, my))
         self.canvas.create_line(
