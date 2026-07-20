@@ -10,7 +10,8 @@ class SomsedApp:
         self.root = root
         self.root.title("Somsed")
         self.root.geometry("1000x700")
-        self.points = []
+        self.pixel_points = []
+        self.math_points = []
         self.axis_range = 10
         self.init_hardware()
         self.benchmark_device()
@@ -318,14 +319,24 @@ class SomsedApp:
     def start_draw(self, event):
         mx, my = self.canvas_to_math(event.x, event.y)
 
-        self.points.append((event.x, event.y))
+        self.pixel_points.append((event.x, event.y))
+        self.math_points.append((mx, my))
         self.log(f"Point drawn at: ({mx:.1f}, {my:.1f})")
     
     def draw(self, event):
         x, y = event.x, event.y
-        prev_x, prev_y = self.points[-1]
-        self.canvas.create_line(prev_x, prev_y, x, y, fill="black", width=3, capstyle=tk.ROUND, smooth=True)
-        self.points.append((x, y))
+        mx, my = self.canvas_to_math(x, y)
+        prev_x, prev_y = self.pixel_points[-1]
+        self.pixel_points.append((x, y))
+        self.math_points.append((mx, my))
+        self.canvas.create_line(
+            prev_x, prev_y,
+            x, y,
+            fill="black",
+            width=3,
+            capstyle=tk.ROUND,
+            smooth=True
+        )
     
     def optimize_curve(self):
         self.log("Starting curve optimization...")
@@ -333,7 +344,8 @@ class SomsedApp:
     def clear_canvas(self):
         self.canvas.delete("all")
         self.draw_grid()
-        self.points.clear()
+        self.pixel_points.clear()
+        self.math_points.clear()
         self.log_console.configure(state="normal")
         self.log_console.delete(1.0, tk.END)
         self.log_console.configure(state="disabled")
