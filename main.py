@@ -833,14 +833,16 @@ class SomsedApp:
         elif model == "Exponential":
             parameter_count = 3
 
-
-        coefficients = torch.zeros(
+        coefficients = torch.randn(
             parameter_count,
             dtype=torch.float32,
-            device=self.device,
-            requires_grad=True
+            device=self.device
         )
 
+        coefficients = coefficients * 0.1
+
+        coefficients.requires_grad_()
+        
         optimizer = torch.optim.Adam(
             [coefficients],
             lr=0.005
@@ -879,6 +881,57 @@ class SomsedApp:
             .numpy(),
             loss_history
         )
+    def auto_fit(self, x, y):
+
+        models = [
+            "Linear",
+            "Polynomial",
+            "Sine",
+            "Cosine",
+            "Exponential"
+        ]
+
+        results = []
+
+        for model in models:
+
+            try:
+
+                coefficients, loss_history = self.torch_fit_model(
+                    model,
+                    3,
+                    x,
+                    y
+                )
+
+                final_loss = loss_history[-1]
+
+                results.append(
+                    {
+                        "model": model,
+                        "loss": final_loss,
+                        "coefficients": coefficients,
+                        "history": loss_history
+                    }
+                )
+
+                self.log(
+                    f"{model}: Loss={final_loss:.6f}"
+                )
+
+            except Exception as e:
+
+                self.log(
+                    f"{model} failed: {e}"
+                )
+
+
+        results.sort(
+            key=lambda item:item["loss"]
+        )
+
+
+        return results[0]
 
     def optimize_curve(self):
         self.canvas.delete("optimized_curve")
@@ -896,17 +949,24 @@ class SomsedApp:
 
             degree = 3
 
-            torch_coefficients, torch_loss = self.torch_fit_model(
-                "Polynomial",
-                degree,
+            best = self.auto_fit(
                 x,
                 y
             )
 
-            coefficients = torch_coefficients
-            loss = torch_loss[-1]
+            model = best["model"]
 
-            self.log(f"Torch result: {torch_coefficients}")
+            coefficients = best["coefficients"]
+
+            torch_loss = best["history"]
+
+            loss = best["loss"]
+
+
+            self.log(f"Selected Model: {model}")
+
+
+            self.log(f"Torch result: {coefficients}")
             
             self.functions[self.current_function]["loss_history"] = torch_loss
 
