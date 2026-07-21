@@ -6,6 +6,8 @@ import platform
 import time
 import math
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 class SomsedApp:
@@ -30,12 +32,17 @@ class SomsedApp:
         self.function_counter = 1
         self.last_filtered_point = None
         self.epochs = 200
-        self.convergence_threshold = 0.000001
+        self.convergence_threshold = 0.00001
         self.convergence_patience = 20
+        self.learning_rate = 0.000001
+        self.learning_rate_decay = 0.5
+        self.learning_rate_growth = 1.05
+        self.loss_window = None
+        self.loss_canvas = None
         self.init_hardware()
         self.benchmark_device()
         self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_rowconfigure(1, weight=0)
+        self.root.grid_rowconfigure(1, weight=1)
 
         self.root.grid_columnconfigure(0, weight=0, minsize=400)
         self.root.grid_columnconfigure(1, weight=1)
@@ -83,7 +90,7 @@ class SomsedApp:
 
         self.bottom_frame = ctk.CTkFrame(
             self.root,
-            height=150
+            height=170
         )
 
         self.bottom_frame.grid(
@@ -99,7 +106,8 @@ class SomsedApp:
 
         self.sidebar = ctk.CTkFrame(
             self.bottom_frame,
-            width=200,
+            width=350,
+            height=160
         )  
         self.sidebar.grid(
             row=0,
@@ -110,6 +118,8 @@ class SomsedApp:
         )
         self.sidebar.grid_columnconfigure(0, weight=1)
         self.sidebar.grid_columnconfigure(1, weight=2)
+        self.sidebar.grid_columnconfigure(2, weight=1)
+        self.sidebar.grid_columnconfigure(3, weight=1)
 
         self.hardware_label = ctk.CTkLabel(
             self.sidebar,
@@ -135,6 +145,7 @@ class SomsedApp:
         self.precision_slider.grid(
             row=2,
             column=1,
+            columnspan=2,
             sticky="ew",
             padx=10
         )
@@ -145,10 +156,10 @@ class SomsedApp:
             font=("Arial", 10, "bold")
         )
         self.precision_title_label.grid(
-            row=2,
-            column=0,
+            row=3,
+            column=1,
             sticky="w",
-            padx=10
+            padx=(10,5)
         )
 
         self.estimated_time_label = ctk.CTkLabel(
@@ -158,10 +169,9 @@ class SomsedApp:
         )
         self.estimated_time_label.grid(
             row=3,
-            column=1,
-            sticky="w",
-            padx=10,
-            pady=(0,8)
+            column=2,
+            sticky="e",
+            padx=(5,10),
         )
 
         self.optimize_button = ctk.CTkButton(
@@ -189,6 +199,20 @@ class SomsedApp:
             column=1,
             padx=(5,10),
             pady=8,
+            sticky="ew"
+        )
+
+        self.loss_button = ctk.CTkButton(
+            self.sidebar,
+            text="Loss Graph",
+            command=self.show_loss_graph,
+            font=("Arial", 12, "bold"),
+        )
+        self.loss_button.grid(
+            row=2,
+            column=0,
+            padx=(10,5),
+            pady=5,
             sticky="ew"
         )
 
@@ -236,7 +260,7 @@ class SomsedApp:
 
         self.log_console = ctk.CTkTextbox(
             self.bottom_frame,
-            height=140,
+            height=160,
             font=("Consolas", 11)
         )
         self.log_console.grid(
@@ -711,6 +735,44 @@ class SomsedApp:
                 width=3,
                 tags="optimized_curve"
             )
+        
+    def show_loss_graph(self):
+        loss_history = self.functions[self.current_function]["loss_history"]
+        if len(loss_history) < 2:
+            return
+
+        if self.loss_window is None or not self.loss_window.winfo_exists():
+            self.loss_window = ctk.CTkToplevel(self.root)
+            self.loss_window.title("Loss History")
+            self.loss_window.geometry("600x400")
+        else:
+            for widget in self.loss_window.winfo_children():
+                widget.destroy()
+        
+        fig, ax = plt.subplots(figsize=(6,4))
+        ax.plot(
+            loss_history
+        )
+
+        ax.set_xlabel(
+            "Epoch"
+        )
+
+        ax.set_ylabel(
+            "Loss"
+        )
+
+        ax.grid(True)
+
+        self.loss_canvas = FigureCanvasTkAgg(
+            fig,
+            master=self.loss_window
+        )
+        self.loss_canvas.draw()
+        self.loss_canvas.get_tk_widget().pack(
+            fill="both",
+            expand=True
+        )
     
     def predict(self, coefficients, x):
         a, b, c, d = coefficients
@@ -771,7 +833,7 @@ class SomsedApp:
             
             self.functions[self.current_function]["loss_history"].clear()
 
-            learning_rate = 0.000001
+            learning_rate = self.learning_rate
 
             previous_loss = None
             patience_counter = 0
@@ -790,6 +852,11 @@ class SomsedApp:
                     x,
                     y
                 )
+
+                if loss > previous_loss if previous_loss is not None else False:
+                    learning_rate *= self.learning_rate_decay
+                else:
+                    learning_rate *= self.learning_rate_growth
 
                 if previous_loss is not None:
                     loss_change = abs(previous_loss - loss)
@@ -845,7 +912,7 @@ class SomsedApp:
 
             equation = equation.replace("+ -", "- ")
 
-            self.funtions[self.current_function]["coefficients"] = coefficients
+            self.functions[self.current_function]["coefficients"] = coefficients
             self.functions[self.current_function]["equation"] = equation
             self.refresh_function_list()
 
