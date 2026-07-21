@@ -22,6 +22,7 @@ class SomsedApp:
                 "math_points": [],
                 "equation": "Not optimized",
                 "coefficients": [0, 0 , 0, 0],
+                "degree": None,
                 "loss_history": []
             }
         }
@@ -34,7 +35,7 @@ class SomsedApp:
         self.epochs = 200
         self.convergence_threshold = 0.00001
         self.convergence_patience = 20
-        self.learning_rate = 0.000001
+        self.learning_rate = 0.00001
         self.learning_rate_decay = 0.5
         self.learning_rate_growth = 1.05
         self.loss_window = None
@@ -374,6 +375,7 @@ class SomsedApp:
             "math_points": [],
             "equation": "Not optimized",
             "coefficients": [0, 0, 0, 0],
+            "degree": None,
             "loss_history": []
         }
         self.current_function = name
@@ -775,10 +777,13 @@ class SomsedApp:
         )
     
     def predict(self, coefficients, x):
-        a, b, c, d = coefficients
-        return(
-            a * x**3 + b * x**2 + c * x + d
-        )
+        result = np.zeros_like(x, dtype=float)
+        degree = len(coefficients) - 1
+
+        for i, c in enumerate(coefficients):
+            power = degree - i
+            result += c * x**power
+        return result
     
     def calculate_gradient(self, coefficients, x, y):
         predictions = self.predict(
@@ -788,28 +793,76 @@ class SomsedApp:
         
         error = predictions - y
 
-        a_gradient = np.mean(
-            2 * error * x**3
-        )
+        gradients = []
 
-        b_gradient = np.mean(
-            2 * error * x**2
-        )
+        degree = len(coefficients)-1
 
-        c_gradient = np.mean(
-            2 * error * x
-        )
+        for i in range(len(coefficients)):
+            power = degree - i
+            gradients.append(
+                np.mean(
+                    2 * error * x**power
+                )
+            )
 
-        d_gradient = np.mean(
-            2 * error
-        )
+        return np.array(gradients)
+    
+    def fit_model(self, degree, x, y):
+        coefficients = np.zeros(degree + 1)
+            
+        self.functions[self.current_function]["loss_history"].clear()
 
-        return np.array([
-            a_gradient,
-            b_gradient,
-            c_gradient,
-            d_gradient
-        ])
+        learning_rate = self.learning_rate
+
+        previous_loss = None
+        patience_counter = 0
+
+        for epoch in range(self.epochs):
+            gradient = self.calculate_gradient(
+                coefficients,
+                x,
+                y
+            )
+
+            coefficients -= learning_rate * gradient
+
+            loss = self.calculate_error(
+                coefficients,
+                x,
+                y
+            )
+
+    def choose_best_model(self, x, y):
+        best_degree = None
+        best_loss = float("inf")
+        best_coefficients = None
+
+        for degree in range(1, 6):
+            coefficients = np.polyfit(
+                x,
+                y,
+                degree
+            )
+
+            prediction = np.polyval(
+                coefficients,
+                x
+            )
+
+            loss = np.mean(
+                (prediction-y)**2
+            )
+
+            self.log(
+                f"Degree {degree} Loss: {loss:.5f}"
+            )
+
+            if loss < best_loss:
+                best_loss = loss
+                best_degree = degree
+                best_coefficients = coefficients
+
+        return best_degree, best_coefficients
 
     def optimize_curve(self):
         self.canvas.delete("optimized_curve")
@@ -824,12 +877,11 @@ class SomsedApp:
         y = np.array([p[1] for p in points])
 
         try:
-            coefficients = np.array([
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ])
+
+            degree, coefficients = self.choose_best_model(
+                x,
+                y
+            )
             
             self.functions[self.current_function]["loss_history"].clear()
 
@@ -853,10 +905,8 @@ class SomsedApp:
                     y
                 )
 
-                if loss > previous_loss if previous_loss is not None else False:
+                if previous_loss is not None and loss > previous_loss:
                     learning_rate *= self.learning_rate_decay
-                else:
-                    learning_rate *= self.learning_rate_growth
 
                 if previous_loss is not None:
                     loss_change = abs(previous_loss - loss)
@@ -889,8 +939,9 @@ class SomsedApp:
                     time.sleep(0.02)
 
             self.log(f"Current Loss: {loss:.6f}")
+            self.log(f"Selected Degree: {degree}")
 
-            degree = 3
+            degree = len(coefficients)-1
 
             equation = "y = "
 
@@ -913,6 +964,7 @@ class SomsedApp:
             equation = equation.replace("+ -", "- ")
 
             self.functions[self.current_function]["coefficients"] = coefficients
+            self.functions[self.current_function]["degree"] = degree
             self.functions[self.current_function]["equation"] = equation
             self.refresh_function_list()
 
