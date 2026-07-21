@@ -19,7 +19,8 @@ class SomsedApp:
                 "pixel_points": [],
                 "math_points": [],
                 "equation": "Not optimized",
-                "coefficients": [0, 0 , 0, 0]
+                "coefficients": [0, 0 , 0, 0],
+                "loss_history": []
             }
         }
         self.current_function = "F1"
@@ -346,7 +347,8 @@ class SomsedApp:
             "pixel_points": [],
             "math_points": [],
             "equation": "Not optimized",
-            "coefficients": [0, 0, 0, 0]
+            "coefficients": [0, 0, 0, 0],
+            "loss_history": []
         }
         self.current_function = name
         self.refresh_function_list()
@@ -764,6 +766,8 @@ class SomsedApp:
                 0.0,
                 0.0
             ])
+            
+            self.functions[self.current_function]["loss_history"].clear()
 
             learning_rate = 0.000001
 
@@ -781,6 +785,8 @@ class SomsedApp:
                     x,
                     y
                 )
+
+                self.functions[self.current_function]["loss_history"].append(loss)
 
                 if epoch % 50 == 0:
 
