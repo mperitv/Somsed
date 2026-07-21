@@ -783,7 +783,7 @@ class SomsedApp:
 
         optimizer = torch.optim.Adam(
             [coefficients],
-            lr=0.01
+            lr=0.005
         )
 
         loss_history = []
@@ -884,39 +884,6 @@ class SomsedApp:
             self.functions[self.current_function]["degree"] = degree
             self.functions[self.current_function]["equation"] = equation
             self.refresh_function_list()
-
-            test_x = np.linspace(
-                min(x),
-                max(x),
-                200
-            )
-
-            test_y = self.predict(
-                coefficients,
-                test_x
-            )
-
-            for i in range(1, len(test_x)):
-
-                x1, y1 = self.math_to_canvas(
-                    test_x[i-1],
-                    test_y[i-1]
-                )
-
-                x2, y2 = self.math_to_canvas(
-                    test_x[i],
-                    test_y[i]
-                )
-
-                self.canvas.create_line(
-                    x1,
-                    y1,
-                    x2,
-                    y2,
-                    fill="red",
-                    width=3,
-                    tags="optimized_curve"
-                )
 
         except Exception as e:
             self.log(f"Optimization error: {e}")
