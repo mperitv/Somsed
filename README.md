@@ -40,9 +40,15 @@ For macOS:
 Because the app is not signed with an Apple Developer certificate, macOS may show a security warning.
 
 To open the app:
-1. Right click Somsed.app
-2. Click Open
-3. Confirm opening the application
+1. Try opening Somsed.app and click Done
+2. Open System Settings
+3. Go to Privacy & Security
+4. Scroll down to security section
+5. Click Open Anyway for Somsed
+6. Confirm by clicking Open
+
+   
+
 
 ## Build Information
 
