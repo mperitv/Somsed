@@ -669,6 +669,45 @@ class SomsedApp:
 
         return error
     
+    def draw_prediction(self, coefficients, x):
+
+        self.canvas.delete(
+            "optimized_curve"
+        )
+
+        test_x = np.linspace(
+            min(x),
+            max(x),
+            200
+        )
+        
+        test_y = self.predict(
+            coefficients,
+            test_x
+        )
+
+        for i in range(1, len(test_x)):
+
+            x1, y1 = self.math_to_canvas(
+                test_x[i-1],
+                test_y[i-1]
+            )
+
+            x2, y2 = self.math_to_canvas(
+                test_x[i],
+                test_y[i]
+            )
+
+            self.canvas.create_line(
+                x1,
+                y1,
+                x2,
+                y2,
+                fill="red",
+                width=3,
+                tags="optimized_curve"
+            )
+    
     def predict(self, coefficients, x):
         a, b, c, d = coefficients
         return(
@@ -684,7 +723,7 @@ class SomsedApp:
         error = predictions - y
 
         a_gradient = np.mean(
-            2 * error * x**2
+            2 * error * x**3
         )
 
         b_gradient = np.mean(
@@ -707,6 +746,7 @@ class SomsedApp:
         ])
 
     def optimize_curve(self):
+        self.canvas.delete("optimized_curve")
 
         if len(self.current_math()) < 3:
             self.log("Not enough points")
@@ -742,12 +782,23 @@ class SomsedApp:
                     y
                 )
 
-                if epoch % 100 == 0:
+                if epoch % 50 == 0:
+
                     self.log(
                         f"Epoch: {epoch}    Loss: {loss:.6f}"
                     )
 
+                    self.draw_prediction(
+                        coefficients,
+                        x
+                    )
+
+                    self.root.update()
+                    time.sleep(0.02)
+
             self.log(f"Current Loss: {loss:.6f}")
+
+            degree = 3
 
             equation = "y = "
 
@@ -769,6 +820,7 @@ class SomsedApp:
 
             equation = equation.replace("+ -", "- ")
 
+            self.funtions[self.current_function]["coefficients"] = coefficients
             self.functions[self.current_function]["equation"] = equation
             self.refresh_function_list()
 
@@ -801,7 +853,8 @@ class SomsedApp:
                     x2,
                     y2,
                     fill="red",
-                    width=3
+                    width=3,
+                    tags="optimized_curve"
                 )
 
         except Exception as e:
