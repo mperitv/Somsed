@@ -33,10 +33,6 @@ class SomsedApp:
         self.function_counter = 1
         self.last_filtered_point = None
         self.epochs = 200
-        self.convergence_threshold = 0.00001
-        self.convergence_patience = 20
-        self.learning_rate = 0.00001
-        self.learning_rate_decay = 0.5
         self.loss_window = None
         self.loss_canvas = None
         self.init_hardware()
@@ -666,18 +662,6 @@ class SomsedApp:
                 
         return True
     
-    def calculate_error(self, coefficients, x, y):
-        predictions = self.predict(
-            coefficients,
-            x
-        )
-
-        error = np.mean(
-            (predictions - y) ** 2
-        )
-
-        return error
-    
     def draw_prediction(self, coefficients, x):
 
         self.canvas.delete(
@@ -776,28 +760,6 @@ class SomsedApp:
 
         return result
     
-    def calculate_gradient(self, coefficients, x, y):
-        predictions = self.predict(
-            coefficients,
-            x
-        )
-        
-        error = predictions - y
-
-        gradients = []
-
-        degree = len(coefficients)-1
-
-        for i in range(len(coefficients)):
-            power = degree - i
-            gradients.append(
-                np.mean(
-                    2 * error * x**power
-                )
-            )
-
-        return np.array(gradients)
-    
     def torch_fit_model(self, degree, x, y):
 
         x = torch.tensor(
@@ -869,24 +831,9 @@ class SomsedApp:
         x = np.array([p[0] for p in points])
         y = np.array([p[1] for p in points])
 
-        x_torch = torch.tensor(
-            x,
-            dtype=torch.float32,
-            device=self.device
-        )
-
-        y_torch = torch.tensor(
-            y,
-            dtype=torch.float32,
-            device=self.device
-        )
-
         try:
 
-            degree, coefficients = self.choose_best_model(
-                x,
-                y
-            )
+            degree = 3
 
             torch_coefficients, torch_loss = self.torch_fit_model(
                 degree,
@@ -894,62 +841,19 @@ class SomsedApp:
                 y
             )
 
+            coefficients = torch_coefficients
+            loss = torch_loss[-1]
+
             self.log(f"Torch result: {torch_coefficients}")
             
-            self.functions[self.current_function]["loss_history"].clear()
+            self.functions[self.current_function]["loss_history"] = torch_loss
 
-            learning_rate = self.learning_rate
+            loss = torch_loss[-1]
 
-            previous_loss = None
-            patience_counter = 0
-
-            for epoch in range(self.epochs):
-                gradient = self.calculate_gradient(
-                    coefficients,
-                    x,
-                    y
-                )
-
-                coefficients -= learning_rate * gradient
-
-                loss = self.calculate_error(
-                    coefficients,
-                    x,
-                    y
-                )
-
-                if previous_loss is not None and loss > previous_loss:
-                    learning_rate *= self.learning_rate_decay
-
-                if previous_loss is not None:
-                    loss_change = abs(previous_loss - loss)
-                    if loss_change < self.convergence_threshold:
-                        patience_counter += 1
-                    else:
-                        patience_counter = 0
-                    
-                    if patience_counter >= self.convergence_patience:
-                        self.log(
-                            f"Converged at epoch {epoch}"
-                        )
-                        break
-                previous_loss = loss
-
-                self.functions[self.current_function]["loss_history"].append(loss)
-
-                if epoch % 50 == 0:
-
-                    self.log(
-                        f"Epoch: {epoch}    Loss: {loss:.6f}"
-                    )
-
-                    self.draw_prediction(
-                        coefficients,
-                        x
-                    )
-
-                    self.root.update()
-                    time.sleep(0.02)
+            self.draw_prediction(
+                coefficients,
+                x
+            )
 
             self.log(f"Current Loss: {loss:.6f}")
             self.log(f"Selected Degree: {degree}")
