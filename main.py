@@ -32,7 +32,7 @@ class SomsedApp:
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_rowconfigure(1, weight=0)
 
-        self.root.grid_columnconfigure(0, weight=0)
+        self.root.grid_columnconfigure(0, weight=0, minsize=400)
         self.root.grid_columnconfigure(1, weight=1)
         self.init_ui()
 
@@ -188,13 +188,13 @@ class SomsedApp:
 
         self.function_frame = ctk.CTkFrame(
             self.root,
-            width=120
+            width=400
         )
 
         self.function_frame.grid(
             row=0,
             column=0,
-            sticky="ns",
+            sticky="nsew",
             padx=(5,0),
             pady=5
         )
@@ -249,6 +249,7 @@ class SomsedApp:
             self.function_frame,
             text="+ Add Function",
             command=self.add_function,
+            height=40,
             fg_color="green",
             hover_color="darkgreen"
         )
@@ -263,6 +264,7 @@ class SomsedApp:
             self.function_frame,
             text="- Delete Function",
             command=self.delete_function,
+            height=40,
             fg_color="firebrick",
             hover_color="darkred"
         )
@@ -281,6 +283,7 @@ class SomsedApp:
                     text=f"{name}\n{equation}",
                     command=lambda n=name: self.switch_function(n),
                     height=60,
+                    width=260,
                     fg_color="#00897B",
                     hover_color="#00695C"
                 )
