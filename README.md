@@ -1,4 +1,4 @@
-<img width="1112" height="840" alt="Screenshot 2026-07-21 at 10 34 26 PM" src="https://github.com/user-attachments/assets/83aa54d8-91c3-41de-8fd2-156c4fdad039" /># Somsed
+# Somsed
 
 A graphing calculator... actually a calculator graphing! Instead of entering a function and getting a graph like in a normal graphing calculator, you draw the graph and get the function!!!
 
