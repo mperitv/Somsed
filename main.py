@@ -652,6 +652,18 @@ class SomsedApp:
                     return False
                 
         return True
+    
+    def calculate_error(self, coefficients, x, y):
+        predictions = np.polyval(
+            coefficients,
+            x
+        )
+
+        error = np.mean(
+            (predictions - y) ** 2
+        )
+
+        return error
 
     def optimize_curve(self):
 
@@ -672,6 +684,14 @@ class SomsedApp:
                 y,
                 degree
             )
+
+            loss = self.calculate_error(
+                coefficients,
+                x,
+                y
+            )
+
+            self.log(f"Current Loss: {loss:.6f}")
 
             equation = "y = "
 
