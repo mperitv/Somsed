@@ -17,7 +17,8 @@ class SomsedApp:
         self.functions = {
             "F1": {
                 "pixel_points": [],
-                "math_points": []
+                "math_points": [],
+                "equation": "Not optimized"
             }
         }
         self.current_function = "F1"
@@ -274,10 +275,12 @@ class SomsedApp:
 
         for name in self.functions:
             if name == self.current_function:
+                equation = self.functions[name]["equation"]
                 button = ctk.CTkButton(
                     self.function_frame,
-                    text=name,
+                    text=f"{name}\n{equation}",
                     command=lambda n=name: self.switch_function(n),
+                    height=60,
                     fg_color="#00897B",
                     hover_color="#00695C"
                 )
@@ -299,7 +302,8 @@ class SomsedApp:
         name = f"F{self.function_counter}"
         self.functions[name] = {
             "pixel_points": [],
-            "math_points": []
+            "math_points": [],
+            "equation": "Not optimized"
         }
         self.current_function = name
         self.refresh_function_list()
@@ -641,6 +645,8 @@ class SomsedApp:
 
             equation = equation.replace("+ -", "- ")
 
+            self.functions[self.current_function]["equation"] = equation
+            self.refresh_function_list()
             self.log("----------------")
             self.log("Generated Function:")
             self.log(equation)
