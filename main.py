@@ -235,6 +235,9 @@ class SomsedApp:
         self.refresh_function_list()
 
     def refresh_function_list(self):
+        self.function_frame.grid_columnconfigure(0, weight=1)
+        self.function_frame.grid_columnconfigure(1, weight=1)
+
         for widget in self.function_frame.winfo_children():
             widget.destroy()
         
@@ -243,7 +246,13 @@ class SomsedApp:
             text="Functions",
             font=("Arial", 16, "bold")
         )
-        title.pack(pady=(10,15))
+        title.grid(
+            row=0,
+            column=0,
+            columnspan=2,
+            pady=(10,15),
+            sticky="n"
+        )
 
         add_button = ctk.CTkButton(
             self.function_frame,
@@ -254,9 +263,11 @@ class SomsedApp:
             hover_color="darkgreen"
         )
 
-        add_button.pack(
-            fill="x",
-            padx=8,
+        add_button.grid(
+            row=1,
+            column=0,
+            sticky="ew",
+            padx=(8,4),
             pady=(0, 10)
         )
 
@@ -269,36 +280,51 @@ class SomsedApp:
             hover_color="darkred"
         )
 
-        delete_button.pack(
-            fill="x",
-            padx=8,
+        delete_button.grid(
+            row=1,
+            column=1,
+            sticky="ew",
+            padx=(4,8),
             pady=(0, 10)
         )
 
+        row = 2
         for name in self.functions:
+            equation = self.functions[name]["equation"]
+            text = f"{name}: {equation}"
             if name == self.current_function:
-                equation = self.functions[name]["equation"]
                 button = ctk.CTkButton(
                     self.function_frame,
-                    text=f"{name}\n{equation}",
+                    text=text,
                     command=lambda n=name: self.switch_function(n),
-                    height=60,
+                    height=55,
                     width=260,
+                    anchor="w",
                     fg_color="#00897B",
                     hover_color="#00695C"
                 )
             else:
                 button = ctk.CTkButton(
                     self.function_frame,
-                    text=name,
-                    command=lambda n=name: self.switch_function(n)
+                    text=text,
+                    command=lambda n=name: self.switch_function(n),
+                    height=55,
+                    width=360,
+                    anchor="w",
+                    fg_color=("gray75", "gray25"),
+                    hover_color=("gray65", "gray35")
             )
-
-            button.pack(
-                fill="x",
+            button.grid(
+                row=row,
+                column=0,
+                columnspan=2,
+                sticky="ew",
                 padx=8,
-                pady=(10, 3)
+                pady=5
             )
+            row += 1
+
+
 
     def add_function(self):
         self.function_counter += 1
@@ -321,8 +347,17 @@ class SomsedApp:
             )
             return
         
+        function_names = list(self.functions.keys())
+        current_index = function_names.index(
+            self.current_function
+        )
+        
         del self.functions[self.current_function]
-        self.current_function = next(iter(self.functions))
+        remaining_functions = list(self.functions.keys())
+        if current_index > 0:
+            self.current_function = remaining_functions[current_index - 1]
+        else:
+            self.current_function = remaining_functions[0]
         self.refresh_function_list()
         self.redraw_canvas()
         self.log("Function deleted.")
