@@ -18,7 +18,8 @@ class SomsedApp:
             "F1": {
                 "pixel_points": [],
                 "math_points": [],
-                "equation": "Not optimized"
+                "equation": "Not optimized",
+                "coefficients": [0, 0 , 0, 0]
             }
         }
         self.current_function = "F1"
@@ -125,6 +126,7 @@ class SomsedApp:
             self.sidebar,
             from_=200,
             to=3000,
+            number_of_steps=28,
             command=self.update_time,
         )
         self.precision_slider.grid(
@@ -343,7 +345,8 @@ class SomsedApp:
         self.functions[name] = {
             "pixel_points": [],
             "math_points": [],
-            "equation": "Not optimized"
+            "equation": "Not optimized",
+            "coefficients": [0, 0, 0, 0]
         }
         self.current_function = name
         self.refresh_function_list()
@@ -523,9 +526,8 @@ class SomsedApp:
         self.log_console.configure(state="disabled")
 
     def update_time(self, value):
-        epochs = round(value / 100) * 100
+        epochs = int(float(value))
         self.epochs = epochs
-        self.precision_slider.set(epochs)
         self.precision_title_label.configure(
             text=f"Epoch: {epochs}"
         )
@@ -656,7 +658,7 @@ class SomsedApp:
         return True
     
     def calculate_error(self, coefficients, x, y):
-        predictions = np.polyval(
+        predictions = self.predict(
             coefficients,
             x
         )
@@ -666,6 +668,12 @@ class SomsedApp:
         )
 
         return error
+    
+    def predict(self, coefficients, x):
+        a, b, c, d = coefficients
+        return(
+            a * x**3 + b * x**2 + c * x + d
+        )
 
     def optimize_curve(self):
 
@@ -681,7 +689,7 @@ class SomsedApp:
         try:
             degree = 3
 
-            for epoch in range(self.epochs):
+            for epoch in range(self.epochs + 1):
                 coefficients = np.polyfit(
                     x,
                     y,
