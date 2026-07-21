@@ -41,7 +41,6 @@ class SomsedApp:
         self.loss_canvas = None
         self.init_hardware()
         self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_rowconfigure(1, weight=1)
 
         self.root.grid_columnconfigure(0, weight=0, minsize=400)
         self.root.grid_columnconfigure(1, weight=1)
@@ -541,9 +540,9 @@ class SomsedApp:
         self.precision_title_label.configure(
             text=f"Epoch: {epochs}"
         )
-        calculated_time = epochs * self.time_coefficient
+
         self.estimated_time_label.configure(
-            text=f"Estimated Time: {calculated_time:.2f} s"
+            text=f"Estimated Time: Torch"
         )
 
     def start_draw(self, event):
@@ -798,38 +797,65 @@ class SomsedApp:
             )
 
         return np.array(gradients)
+    
+    def torch_fit_model(self, degree, x, y):
 
-    def choose_best_model(self, x, y):
-        best_degree = None
-        best_loss = float("inf")
-        best_coefficients = None
+        x = torch.tensor(
+            x,
+            dtype=torch.float32,
+            device=self.device
+        )
 
-        for degree in range(1, 6):
-            coefficients = np.polyfit(
-                x,
-                y,
-                degree
-            )
+        y = torch.tensor(
+            y,
+            dtype=torch.float32,
+            device=self.device
+        )
 
-            prediction = np.polyval(
+        coefficients = torch.zeros(
+            degree + 1,
+            dtype=torch.float32,
+            device=self.device,
+            requires_grad=True
+        )
+
+        optimizer = torch.optim.Adam(
+            [coefficients],
+            lr=0.01
+        )
+
+        loss_history = []
+
+        for epoch in range(self.epochs):
+
+            prediction = self.torch_predict(
                 coefficients,
                 x
             )
 
-            loss = np.mean(
-                (prediction-y)**2
+            loss = torch.mean(
+                (prediction - y) ** 2
             )
 
-            self.log(
-                f"Degree {degree} Loss: {loss:.5f}"
+            optimizer.zero_grad()
+
+            loss.backward()
+
+            optimizer.step()
+
+            loss_history.append(
+                loss.item()
             )
 
-            if loss < best_loss:
-                best_loss = loss
-                best_degree = degree
-                best_coefficients = coefficients
+            if epoch % 50 == 0:
+                self.log(f"Torch Epoch {epoch} Loss {loss.item():.6f}")
 
-        return best_degree, best_coefficients
+        return (
+            coefficients.detach()
+            .cpu()
+            .numpy(),
+            loss_history
+        )
 
     def optimize_curve(self):
         self.canvas.delete("optimized_curve")
@@ -861,6 +887,14 @@ class SomsedApp:
                 x,
                 y
             )
+
+            torch_coefficients, torch_loss = self.torch_fit_model(
+                degree,
+                x,
+                y
+            )
+
+            self.log(f"Torch result: {torch_coefficients}")
             
             self.functions[self.current_function]["loss_history"].clear()
 
