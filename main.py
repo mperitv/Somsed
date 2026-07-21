@@ -191,6 +191,19 @@ class SomsedApp:
             width=400
         )
 
+        self.function_list = ctk.CTkScrollableFrame(
+            self.function_frame,
+            width=370,
+            height=400
+        )
+
+        self.function_list.pack(
+            fill="both",
+            expand=True,
+            padx=5,
+            pady=(120,5)
+        )
+
         self.function_frame.grid(
             row=0,
             column=0,
@@ -238,7 +251,7 @@ class SomsedApp:
         self.function_frame.grid_columnconfigure(0, weight=1)
         self.function_frame.grid_columnconfigure(1, weight=1)
 
-        for widget in self.function_frame.winfo_children():
+        for widget in self.function_list.winfo_children():
             widget.destroy()
         
         title = ctk.CTkLabel(
@@ -294,7 +307,7 @@ class SomsedApp:
             text = f"{name}: {equation}"
             if name == self.current_function:
                 button = ctk.CTkButton(
-                    self.function_frame,
+                    self.function_list,
                     text=text,
                     command=lambda n=name: self.switch_function(n),
                     height=55,
@@ -305,7 +318,7 @@ class SomsedApp:
                 )
             else:
                 button = ctk.CTkButton(
-                    self.function_frame,
+                    self.function_list,
                     text=text,
                     command=lambda n=name: self.switch_function(n),
                     height=55,
@@ -314,11 +327,8 @@ class SomsedApp:
                     fg_color=("gray75", "gray25"),
                     hover_color=("gray65", "gray35")
             )
-            button.grid(
-                row=row,
-                column=0,
-                columnspan=2,
-                sticky="ew",
+            button.pack(
+                fill="x",
                 padx=8,
                 pady=5
             )
@@ -685,10 +695,6 @@ class SomsedApp:
 
             self.functions[self.current_function]["equation"] = equation
             self.refresh_function_list()
-            self.log("----------------")
-            self.log("Generated Function:")
-            self.log(equation)
-            self.log("----------------")
 
             test_x = np.linspace(
                 min(x),
