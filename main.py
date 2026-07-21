@@ -674,6 +674,37 @@ class SomsedApp:
         return(
             a * x**3 + b * x**2 + c * x + d
         )
+    
+    def calculate_gradient(self, coefficients, x, y):
+        predictions = self.predict(
+            coefficients,
+            x
+        )
+        
+        error = predictions - y
+
+        a_gradient = np.mean(
+            2 * error * x**2
+        )
+
+        b_gradient = np.mean(
+            2 * error * x**2
+        )
+
+        c_gradient = np.mean(
+            2 * error * x
+        )
+
+        d_gradient = np.mean(
+            2 * error
+        )
+
+        return np.array([
+            a_gradient,
+            b_gradient,
+            c_gradient,
+            d_gradient
+        ])
 
     def optimize_curve(self):
 
@@ -687,14 +718,23 @@ class SomsedApp:
         y = np.array([p[1] for p in points])
 
         try:
-            degree = 3
+            coefficients = np.array([
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ])
 
-            for epoch in range(self.epochs + 1):
-                coefficients = np.polyfit(
+            learning_rate = 0.000001
+
+            for epoch in range(self.epochs):
+                gradient = self.calculate_gradient(
+                    coefficients,
                     x,
-                    y,
-                    degree
+                    y
                 )
+
+                coefficients -= learning_rate * gradient
 
                 loss = self.calculate_error(
                     coefficients,
@@ -704,7 +744,7 @@ class SomsedApp:
 
                 if epoch % 100 == 0:
                     self.log(
-                        f"Epoch: {epoch}    Loss: {loss:.6f} "
+                        f"Epoch: {epoch}    Loss: {loss:.6f}"
                     )
 
             self.log(f"Current Loss: {loss:.6f}")
@@ -738,7 +778,7 @@ class SomsedApp:
                 200
             )
 
-            test_y = np.polyval(
+            test_y = self.predict(
                 coefficients,
                 test_x
             )
