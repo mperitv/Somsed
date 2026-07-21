@@ -33,6 +33,13 @@ class SomsedApp:
         self.function_counter = 1
         self.last_filtered_point = None
         self.epochs = 200
+        self.available_models = [
+            "Linear",
+            "Polynomial",
+            "Sine",
+            "Cosine",
+            "Exponential"
+        ]
         self.loss_window = None
         self.loss_canvas = None
         self.init_hardware()
@@ -748,19 +755,62 @@ class SomsedApp:
             result += c * x**power
         return result
     
-    def torch_predict(self, coefficients, x):
+    def torch_predict(self, coefficients, x, model):
 
-        degree = len(coefficients) - 1
+        if model == "Linear":
 
-        result = torch.zeros_like(x)
+            return(
+                coefficients[0] * x +
+                coefficients[1]
+            )
 
-        for i, c in enumerate(coefficients):
-            power = degree - i
-            result += c * (x ** power)
+        elif model == "Polynomial":
 
-        return result
+            result = torch.zeros_like(x)
+            degree = len(coefficients) - 1
+            for i, c in enumerate(coefficients):
+                power = degree - i
+                result += c * (x ** power)
+
+            return result
+        
+        elif model == "Sine":
+            
+            return (
+                coefficients[0] *
+                torch.sin(
+                    coefficients[1] * x +
+                    coefficients[2]
+                )
+                +
+                coefficients[3]
+            )
+        
+        elif model == "Cosine":
+
+            return (
+                coefficients[0] *
+                torch.cos(
+                    coefficients[1] * x +
+                    coefficients[2]
+                )
+                +
+                coefficients[3]
+            )
+
+
+        elif model == "Exponential":
+
+            return (
+                coefficients[0] *
+                torch.exp(
+                    coefficients[1] * x
+                )
+                +
+                coefficients[2]
+            )
     
-    def torch_fit_model(self, degree, x, y):
+    def torch_fit_model(self, model, degree, x, y):
 
         x = torch.tensor(
             x,
@@ -774,8 +824,18 @@ class SomsedApp:
             device=self.device
         )
 
+        if model == "Linear":
+            parameter_count = 2
+
+        elif model in ["Polynomial", "Sine", "Cosine"]:
+            parameter_count = 4
+
+        elif model == "Exponential":
+            parameter_count = 3
+
+
         coefficients = torch.zeros(
-            degree + 1,
+            parameter_count,
             dtype=torch.float32,
             device=self.device,
             requires_grad=True
@@ -792,7 +852,8 @@ class SomsedApp:
 
             prediction = self.torch_predict(
                 coefficients,
-                x
+                x,
+                model
             )
 
             loss = torch.mean(
@@ -836,6 +897,7 @@ class SomsedApp:
             degree = 3
 
             torch_coefficients, torch_loss = self.torch_fit_model(
+                "Polynomial",
                 degree,
                 x,
                 y
