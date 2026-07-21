@@ -30,6 +30,8 @@ class SomsedApp:
         self.function_counter = 1
         self.last_filtered_point = None
         self.epochs = 200
+        self.convergence_threshold = 0.000001
+        self.convergence_patience = 20
         self.init_hardware()
         self.benchmark_device()
         self.root.grid_rowconfigure(0, weight=1)
@@ -771,6 +773,9 @@ class SomsedApp:
 
             learning_rate = 0.000001
 
+            previous_loss = None
+            patience_counter = 0
+
             for epoch in range(self.epochs):
                 gradient = self.calculate_gradient(
                     coefficients,
@@ -785,6 +790,20 @@ class SomsedApp:
                     x,
                     y
                 )
+
+                if previous_loss is not None:
+                    loss_change = abs(previous_loss - loss)
+                    if loss_change < self.convergence_threshold:
+                        patience_counter += 1
+                    else:
+                        patience_counter = 0
+                    
+                    if patience_counter >= self.convergence_patience:
+                        self.log(
+                            f"Converged at epoch {epoch}"
+                        )
+                        break
+                previous_loss = loss
 
                 self.functions[self.current_function]["loss_history"].append(loss)
 
