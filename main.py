@@ -37,11 +37,9 @@ class SomsedApp:
         self.convergence_patience = 20
         self.learning_rate = 0.00001
         self.learning_rate_decay = 0.5
-        self.learning_rate_growth = 1.05
         self.loss_window = None
         self.loss_canvas = None
         self.init_hardware()
-        self.benchmark_device()
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_rowconfigure(1, weight=1)
 
@@ -68,24 +66,6 @@ class SomsedApp:
             else:
                 print("MPS acceleration is unavailable. The application will continue running on the CPU. Performance may be significantly slower.")
     
-    def benchmark_device(self):
-        x = torch.randn(2000, 2000, device=self.device)
-        w = torch.randn(2000, 2000, device=self.device)
-        for _ in range(5):
-            torch.mm(x, w)
-        if self.device.type == "cuda":
-            torch.cuda.synchronize()
-        elif self.device.type == "mps":
-            torch.mps.synchronize()
-        t0 = time.perf_counter()
-        for _ in range(100):
-            torch.mm(x, w)
-        if self.device.type == "cuda":
-            torch.cuda.synchronize()
-        elif self.device.type == "mps":
-            torch.mps.synchronize()
-        t1 = time.perf_counter()
-        self.time_coefficient = (t1 - t0) / 100
 
     def init_ui(self):
 
@@ -785,6 +765,18 @@ class SomsedApp:
             result += c * x**power
         return result
     
+    def torch_predict(self, coefficients, x):
+
+        degree = len(coefficients) - 1
+
+        result = torch.zeros_like(x)
+
+        for i, c in enumerate(coefficients):
+            power = degree - i
+            result += c * (x ** power)
+
+        return result
+    
     def calculate_gradient(self, coefficients, x, y):
         predictions = self.predict(
             coefficients,
@@ -806,31 +798,6 @@ class SomsedApp:
             )
 
         return np.array(gradients)
-    
-    def fit_model(self, degree, x, y):
-        coefficients = np.zeros(degree + 1)
-            
-        self.functions[self.current_function]["loss_history"].clear()
-
-        learning_rate = self.learning_rate
-
-        previous_loss = None
-        patience_counter = 0
-
-        for epoch in range(self.epochs):
-            gradient = self.calculate_gradient(
-                coefficients,
-                x,
-                y
-            )
-
-            coefficients -= learning_rate * gradient
-
-            loss = self.calculate_error(
-                coefficients,
-                x,
-                y
-            )
 
     def choose_best_model(self, x, y):
         best_degree = None
@@ -875,6 +842,18 @@ class SomsedApp:
 
         x = np.array([p[0] for p in points])
         y = np.array([p[1] for p in points])
+
+        x_torch = torch.tensor(
+            x,
+            dtype=torch.float32,
+            device=self.device
+        )
+
+        y_torch = torch.tensor(
+            y,
+            dtype=torch.float32,
+            device=self.device
+        )
 
         try:
 
