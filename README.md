@@ -1,4 +1,4 @@
-# Somsed
+<img width="1112" height="840" alt="Screenshot 2026-07-21 at 10 34 26 PM" src="https://github.com/user-attachments/assets/83aa54d8-91c3-41de-8fd2-156c4fdad039" /># Somsed
 
 A graphing calculator... actually a calculator graphing! Instead of entering a function and getting a graph like in a normal graphing calculator, you draw the graph and get the function!!!
 
@@ -12,8 +12,11 @@ Draw a curve however you want, choose the number of epochs, click the Optimize b
 
  ## Screenshots
 
-<img width="1068" height="796" alt="Screenshot 2026-07-21 at 1 54 25 AM" src="https://github.com/user-attachments/assets/ead16251-b38b-4dd5-a715-97ac67390b87" />
-<img width="1112" height="840" alt="Screenshot 2026-07-21 at 1 55 00 AM" src="https://github.com/user-attachments/assets/9fa2d5e3-8fcc-4bf6-a58a-fd474560e445" />
+<img width="1112" height="840" alt="Screenshot 2026-07-21 at 10 33 08 PM" src="https://github.com/user-attachments/assets/38b062ad-9879-49d5-97fb-f72d97b571bc" />
+
+<img width="1112" height="840" alt="Screenshot 2026-07-21 at 10 34 26 PM" src="https://github.com/user-attachments/assets/fa204ddb-e92a-4b70-b28c-7314598a5bde" />
+
+
 
 ## AI Usage
 
@@ -45,7 +48,7 @@ To open the app:
 3. Go to Privacy & Security
 4. Scroll down to security section
 5. Click Open Anyway for Somsed
-6. Confirm by clicking Open
+6. Confirm by clicking Open Anyway
 
    
 
