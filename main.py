@@ -27,6 +27,7 @@ class SomsedApp:
         self.stabilization = 0.1
         self.function_counter = 1
         self.last_filtered_point = None
+        self.epochs = 200
         self.init_hardware()
         self.benchmark_device()
         self.root.grid_rowconfigure(0, weight=1)
@@ -523,6 +524,7 @@ class SomsedApp:
 
     def update_time(self, value):
         epochs = round(value / 100) * 100
+        self.epochs = epochs
         self.precision_slider.set(epochs)
         self.precision_title_label.configure(
             text=f"Epoch: {epochs}"
@@ -679,17 +681,23 @@ class SomsedApp:
         try:
             degree = 3
 
-            coefficients = np.polyfit(
-                x,
-                y,
-                degree
-            )
+            for epoch in range(self.epochs):
+                coefficients = np.polyfit(
+                    x,
+                    y,
+                    degree
+                )
 
-            loss = self.calculate_error(
-                coefficients,
-                x,
-                y
-            )
+                loss = self.calculate_error(
+                    coefficients,
+                    x,
+                    y
+                )
+
+                if epoch % 100 == 0:
+                    self.log(
+                        f"Epoch: {epoch}    Loss: {loss:.6f} "
+                    )
 
             self.log(f"Current Loss: {loss:.6f}")
 
